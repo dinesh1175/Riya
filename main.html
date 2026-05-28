@@ -455,6 +455,7 @@
   <a href="#message">Letter</a>
   <a href="#gallery">Memories</a>
   <a href="#wishes">Wishes</a>
+  <a href="#quiz">Quiz</a>
 </nav>
 
 <!-- HERO -->
@@ -588,7 +589,37 @@
   </div>
 </section>
 
+<!-- QUIZ -->
+<section id="quiz">
+  <span class="section-tag reveal">✦ How well do you know yourself?</span>
+  <h2 class="section-title reveal">The Riya Quiz</h2>
+  <p class="section-sub reveal">Let's see how self-aware you are 👀</p>
+
+  <div class="quiz-card reveal">
+    <div class="q-progress"><div class="q-progress-fill" id="q-bar" style="width:0%"></div></div>
+    <p class="q-text" id="q-text"></p>
+    <div class="q-options" id="q-options"></div>
+    <p class="quiz-score" id="quiz-score"></p>
+  </div>
+</section>
+
 <footer>Made with 💖 by your CS wizard bro · Just for Riya</footer>
+
+<!-- ── MUSIC PLAYER ── -->
+<audio id="bg-music" loop preload="auto">
+  <source src="music.mpeg" type="audio/mpeg">
+  <source src="music.mp3" type="audio/mpeg">
+</audio>
+
+<button id="music-btn" onclick="toggleMusic()" title="Toggle music" style="
+  position:fixed; bottom:1.5rem; right:1.5rem; z-index:999;
+  background:rgba(26,10,20,0.75); backdrop-filter:blur(10px);
+  border:1px solid rgba(244,160,176,0.35); border-radius:999px;
+  width:48px; height:48px; cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  font-size:1.3rem; transition:transform 0.2s, border-color 0.2s;
+" onmouseover="this.style.transform='scale(1.1)'"
+   onmouseout="this.style.transform='scale(1)'">🎵</button>
 
 <script>
 // ── PARTICLE BACKGROUND ──
@@ -687,31 +718,11 @@ function loadImage(input, i) {
 
 // ── QUIZ ──
 const questions = [
-  {
-    q: "What is Riya's ultimate happy place?",
-    opts: ["On a dance floor 🕺", "Shopping with friends", "Binge-watching shows", "Sleeping till noon"],
-    ans: 0
-  },
-  {
-    q: "If Riya could eat one thing forever, it would be…",
-    opts: ["Biryani 🍛", "Pizza 🍕", "Ice cream 🍦", "Chocolate 🍫"],
-    ans: 0
-  },
-  {
-    q: "Riya's phone gallery is mostly full of…",
-    opts: ["Selfies & aesthetic shots 📸", "Dog videos", "Random screenshots", "Food pics only"],
-    ans: 0
-  },
-  {
-    q: "What is Riya's superpower?",
-    opts: ["Making any room aesthetic instantly ✨", "Eating non-stop", "Disappearing when there's work", "Overthinking everything"],
-    ans: 0
-  },
-  {
-    q: "Riya's vibe in one word?",
-    opts: ["Unbothered queen 👑", "Chaotic gremlin", "Silent introvert", "Corporate boss"],
-    ans: 0
-  }
+  { q: "What is Riya's ultimate happiness?", opts: ["On a dance floor 🕺", "Irritating her brother 🤦‍♂️", "Binge-watching shows", "Sleeping till noon 😪"], ans: 1 },
+  { q: "If Riya could eat one thing forever, it would be…", opts: ["Biryani 🍛", "Pizza 🍕", "Ice cream 🍦", "Chocolate 🍫"], ans: 2 },
+  { q: "Riya's phone gallery is mostly full of…", opts: ["Selfies & aesthetic shots 📸", "Dog videos 🐶", "Random screenshots", "Food pics only🍎"], ans: 0 },
+  { q: "What is Riya's superpower?", opts: ["Overthinking everything 🤔", "Eating non-stop 😋", "Disappearing when there's work 😉", "Sleeping 😴"], ans: 3 },
+  { q: "Riya's vibe in one word?", opts: ["Dramatic queen 👑", "Chaotic gremlin 😏", "Silent introvert 🫥", "Corporate boss 😎"], ans: 0 }
 ];
 
 let qIndex = 0, score = 0, answered = false;
@@ -737,10 +748,7 @@ function renderQ() {
       if (answered) return;
       answered = true;
       if (i === q.ans) { b.classList.add('correct'); score++; }
-      else {
-        b.classList.add('wrong');
-        opts.children[q.ans].classList.add('correct');
-      }
+      else { b.classList.add('wrong'); opts.children[q.ans].classList.add('correct'); }
       document.getElementById('quiz-score').textContent = `Score: ${score} / ${questions.length}`;
       setTimeout(() => { qIndex++; answered = false; renderQ(); }, 1200);
     };
@@ -769,6 +777,28 @@ function launchConfetti() {
       document.body.appendChild(el);
       setTimeout(() => el.remove(), 4000);
     }, i * 20);
+  }
+}
+
+// ── MUSIC LOGIC ──
+const music = document.getElementById('bg-music');
+const musicBtn = document.getElementById('music-btn');
+music.volume = 0.35;
+
+music.play().catch(() => {
+  document.addEventListener('click', function startMusic() {
+    music.play().catch(() => {});
+    document.removeEventListener('click', startMusic);
+  });
+});
+
+function toggleMusic() {
+  if (music.paused) {
+    music.play();
+    musicBtn.textContent = '🎵';
+  } else {
+    music.pause();
+    musicBtn.textContent = '🔇';
   }
 }
 </script>
