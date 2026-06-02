@@ -359,6 +359,30 @@
 
 <canvas id="particles-bg"></canvas>
 
+<!-- ── BIRTHDAY ENTRANCE ── -->
+<div id="bday-overlay" style="
+  position:fixed; inset:0; z-index:9999;
+  background: rgba(26,10,20,0.92);
+  display:flex; flex-direction:column;
+  align-items:center; justify-content:center;
+  pointer-events:none;
+  transition: opacity 1s ease;
+">
+  <canvas id="pop-canvas" style="position:absolute;inset:0;width:100%;height:100%;"></canvas>
+
+  <div id="bday-inner" style="
+    position:relative; z-index:2;
+    font-family:'Satisfy',cursive;
+    font-size:clamp(2.5rem,7vw,5rem);
+    background:linear-gradient(135deg,#fff,#f4a0b0,#f5c842);
+    -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+    background-clip:text;
+    opacity:0; transform:scale(0.6);
+    transition: opacity 0.7s 0.3s ease, transform 0.7s 0.3s ease;
+    text-align:center; padding:0 2rem;
+  "><span style="-webkit-text-fill-color:initial;"></span> Many More Happy Returns of the Day raa Chitti Thalli <span style="-webkit-text-fill-color:initial;">🥰</span></div>
+</div>
+
 <nav>
   <a href="#hero">Home</a>
   <a href="#message">Letter</a>
@@ -685,6 +709,95 @@ function toggleMusic() {
     musicBtn.textContent = '🔇';
   }
 }
+
+window.addEventListener('load', () => {
+  const overlay = document.getElementById('bday-overlay');
+  const canvas = document.getElementById('pop-canvas');
+  const ctx = canvas.getContext('2d');
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+
+  const colors = ['#f4a0b0','#f5c842','#c9a8e8','#ffffff','#e06080','#80d8ff','#ff9f43','#54a0ff'];
+  const particles = [];
+
+  function makeParticles(fromLeft) {
+    for (let i = 0; i < 150; i++) {
+      particles.push({
+        x: fromLeft ? 0 : canvas.width,
+        y: canvas.height / 2,
+        vx: fromLeft ? (Math.random() * 20 + 8) : -(Math.random() * 20 + 8),
+        vy: (Math.random() - 0.5) * 20,
+        color: colors[Math.floor(Math.random() * colors.length)],
+        size: Math.random() * 12 + 5,
+        gravity: 0.4,
+        drag: 0.96,
+        rotation: Math.random() * 360,
+        rotSpeed: (Math.random() - 0.5) * 10,
+        shape: Math.random() > 0.4 ? 'rect' : 'circle',
+        alpha: 1
+      });
+    }
+  }
+
+  makeParticles(true);
+  makeParticles(false);
+
+  // Show text
+  setTimeout(() => {
+    const inner = document.getElementById('bday-inner');
+    inner.style.opacity = '1';
+    inner.style.transform = 'scale(1)';
+  }, 200);
+
+  // Speak
+  setTimeout(() => {
+    const hbd = new Audio('hbd.mp3');
+hbd.volume = 1;
+hbd.play().catch(() => {});
+  }, 300);
+
+  let frame = 0;
+  function animate() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    let alive = false;
+
+    particles.forEach(p => {
+      if (p.alpha <= 0) return;
+      alive = true;
+      p.x += p.vx;
+      p.y += p.vy;
+      p.vy += p.gravity;
+      p.vx *= p.drag;
+      p.vy *= p.drag;
+      p.rotation += p.rotSpeed;
+      if (frame > 80) p.alpha -= 0.015;
+
+      ctx.save();
+      ctx.globalAlpha = Math.max(0, p.alpha);
+      ctx.translate(p.x, p.y);
+      ctx.rotate((p.rotation * Math.PI) / 180);
+      ctx.fillStyle = p.color;
+      if (p.shape === 'rect') {
+        ctx.fillRect(-p.size/2, -p.size/4, p.size, p.size/2);
+      } else {
+        ctx.beginPath();
+        ctx.arc(0, 0, p.size/2, 0, Math.PI*2);
+        ctx.fill();
+      }
+      ctx.restore();
+    });
+
+    frame++;
+    if (alive) {
+      requestAnimationFrame(animate);
+    } else {
+      overlay.style.opacity = '0';
+      setTimeout(() => overlay.remove(), 1000);
+    }
+  }
+
+  animate();
+});
 </script>
 
 </body>
