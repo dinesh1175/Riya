@@ -353,6 +353,32 @@
 
   .reveal { opacity: 0; transform: translateY(40px); transition: opacity 0.8s ease, transform 0.8s ease; }
   .reveal.visible { opacity: 1; transform: translateY(0); }
+
+  .ws-cell {
+  width: 34px; height: 34px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.9rem; font-weight: 700;
+  color: #ffffff !important;
+  background: rgba(244,160,176,0.1) !important;
+  border: 1px solid rgba(244,160,176,0.3) !important;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.15s;
+  text-transform: uppercase;
+}
+.ws-cell.selecting { background: rgba(244,160,176,0.45) !important; color:#fff !important; }
+.ws-cell.found { background: rgba(107,63,160,0.6) !important; border-color: rgba(201,168,232,0.6) !important; color:#fff !important; }
+}
+.ws-cell.selecting { background: rgba(244,160,176,0.35); color:#fff; }
+.ws-cell.found { background: rgba(107,63,160,0.55); border-color: rgba(201,168,232,0.5); color:#fff; }
+.ws-tag {
+  font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase;
+  color: rgba(255,255,255,0.5);
+  border: 1px solid rgba(255,255,255,0.15);
+  padding: 0.3rem 0.9rem; border-radius: 999px;
+  transition: all 0.3s;
+}
+.ws-tag.found { color: #c9a8e8; border-color: #6b3fa0; text-decoration: line-through; }
 </style>
 </head>
 <body>
@@ -519,6 +545,41 @@
     " onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
       🎉 Celebrate!
     </button>
+  </div>
+</section>
+
+<!-- PUZZLE GAME -->
+<section id="puzzle" style="padding:6rem 2rem; text-align:center;">
+
+  <span class="section-tag reveal">✦ Just for you</span>
+  <h2 class="section-title reveal">Find the Words</h2>
+  <p class="section-sub reveal" style="margin-bottom:2.5rem;">words that are SO you, Riya 💖</p>
+
+  <div class="reveal" style="display:flex;flex-direction:column;align-items:center;">
+
+    <p id="ws-progress" style="font-size:0.8rem;color:rgba(255,255,255,0.35);margin-bottom:1rem;letter-spacing:0.1em;">0 / 8 found</p>
+
+    <div id="ws-grid" style="display:inline-grid;gap:3px;user-select:none;margin-bottom:1.5rem;"></div>
+
+    <div id="ws-wordlist" style="display:flex;flex-wrap:wrap;gap:0.5rem;justify-content:center;margin-bottom:2rem;max-width:500px;"></div>
+
+    <div id="ws-win" style="
+      display:none;flex-direction:column;align-items:center;gap:1rem;
+      text-align:center;padding:2.5rem;
+      background:rgba(255,255,255,0.04);
+      border:1px solid rgba(244,160,176,0.2);
+      border-radius:24px;max-width:420px;
+    ">
+      <div style="font-size:2.5rem;">🎉👻🎂</div>
+      <div style="font-family:'Satisfy',cursive;font-size:2rem;color:#f5c842;">You Found Them All!</div>
+      <p style="font-family:'Playfair Display',serif;font-style:italic;font-size:1rem;line-height:1.9;color:rgba(255,255,255,0.75);">
+        Just like every word in that grid,<br>
+        you are one of a kind Riya 💖<br><br>
+        Your anna is so proud of you.<br>
+        Happy 18th Birthday raa chitti thali! 🥳
+      </p>
+    </div>
+
   </div>
 </section>
 
@@ -798,6 +859,159 @@ hbd.play().catch(() => {});
 
   animate();
 });
+
+(function(){
+  const WORDS = ['RIYA','DANCER','DREAMER','SISTER','QUEEN','AESTHETIC','GHOST','PROUD'];
+  const SIZE = 12;
+  let grid = [], placed = [];
+  let selecting = false, startCell = null, currentCells = [], foundWords = [];
+
+  function makeGrid(){
+    grid = Array.from({length:SIZE}, ()=>Array(SIZE).fill(''));
+    const dirs = [[0,1],[1,0],[1,1],[-1,1],[0,-1],[-1,0],[-1,-1],[1,-1]];
+    WORDS.forEach(word=>{
+      let ok=false, tries=0;
+      while(!ok && tries<300){
+        tries++;
+        const dir=dirs[Math.floor(Math.random()*dirs.length)];
+        const r=Math.floor(Math.random()*SIZE);
+        const c=Math.floor(Math.random()*SIZE);
+        const cells=[]; let valid=true;
+        for(let i=0;i<word.length;i++){
+          const nr=r+dir[0]*i, nc=c+dir[1]*i;
+          if(nr<0||nr>=SIZE||nc<0||nc>=SIZE){valid=false;break;}
+          if(grid[nr][nc]!==''&&grid[nr][nc]!==word[i]){valid=false;break;}
+          cells.push([nr,nc]);
+        }
+        if(valid){
+          cells.forEach(([nr,nc],i)=>grid[nr][nc]=word[i]);
+          placed.push({word,cells}); ok=true;
+        }
+      }
+    });
+    const letters='ABCDEFGHIJKLMNOPRSTUVWY';
+    for(let r=0;r<SIZE;r++) for(let c=0;c<SIZE;c++)
+      if(!grid[r][c]) grid[r][c]=letters[Math.floor(Math.random()*letters.length)];
+  }
+
+  function renderGrid(){
+    const el=document.getElementById('ws-grid');
+    el.style.gridTemplateColumns=`repeat(${SIZE},34px)`;
+    el.innerHTML='';
+    for(let r=0;r<SIZE;r++) for(let c=0;c<SIZE;c++){
+      const cell=document.createElement('div');
+      cell.className='ws-cell';
+      cell.textContent=grid[r][c];
+      cell.dataset.r=r; cell.dataset.c=c;
+      cell.addEventListener('mousedown',()=>startSel(r,c));
+      cell.addEventListener('mouseover',()=>moveSel(r,c));
+      cell.addEventListener('touchstart',e=>{e.preventDefault();startSel(r,c);},{passive:false});
+      cell.addEventListener('touchmove',e=>{
+        e.preventDefault();
+        const t=e.touches[0];
+        const el2=document.elementFromPoint(t.clientX,t.clientY);
+        if(el2&&el2.dataset.r!==undefined) moveSel(+el2.dataset.r,+el2.dataset.c);
+      },{passive:false});
+      el.appendChild(cell);
+    }
+  }
+
+  function renderWords(){
+    const el=document.getElementById('ws-wordlist');
+    el.innerHTML='';
+    WORDS.forEach(w=>{
+      const tag=document.createElement('div');
+      tag.className='ws-tag'+(foundWords.includes(w)?' found':'');
+      tag.textContent=w;
+      tag.id='wstag-'+w;
+      el.appendChild(tag);
+    });
+  }
+
+  function cellEl(r,c){ return document.querySelector(`#ws-grid [data-r="${r}"][data-c="${c}"]`); }
+
+  function startSel(r,c){
+    selecting=true; startCell=[r,c]; currentCells=[[r,c]];
+    highlight();
+  }
+
+  function moveSel(r,c){
+    if(!selecting) return;
+    const [sr,sc]=startCell;
+    const dr=r-sr, dc=c-sc;
+    const len=Math.max(Math.abs(dr),Math.abs(dc));
+    if(len===0){currentCells=[[sr,sc]];highlight();return;}
+    if(Math.abs(dr)!==0&&Math.abs(dc)!==0&&Math.abs(dr)!==Math.abs(dc)) return;
+    const stepR=dr===0?0:dr/Math.abs(dr);
+    const stepC=dc===0?0:dc/Math.abs(dc);
+    currentCells=[];
+    for(let i=0;i<=len;i++) currentCells.push([sr+stepR*i,sc+stepC*i]);
+    highlight();
+  }
+
+  function highlight(){
+    document.querySelectorAll('#ws-grid .ws-cell.selecting').forEach(e=>e.classList.remove('selecting'));
+    currentCells.forEach(([r,c])=>{
+      const el=cellEl(r,c);
+      if(el&&!el.classList.contains('found')) el.classList.add('selecting');
+    });
+  }
+
+  function endSel(){
+    if(!selecting) return;
+    selecting=false;
+    const word=currentCells.map(([r,c])=>grid[r][c]).join('');
+    const wordRev=[...currentCells].reverse().map(([r,c])=>grid[r][c]).join('');
+    const match=WORDS.find(w=>w===word||w===wordRev);
+    if(match&&!foundWords.includes(match)){
+      foundWords.push(match);
+      currentCells.forEach(([r,c])=>{
+        const el=cellEl(r,c);
+        if(el){el.classList.remove('selecting');el.classList.add('found');}
+      });
+      document.getElementById('wstag-'+match).classList.add('found');
+      document.getElementById('ws-progress').textContent=`${foundWords.length} / ${WORDS.length} found`;
+      if(foundWords.length===WORDS.length) setTimeout(showWin,500);
+    } else {
+      document.querySelectorAll('#ws-grid .ws-cell.selecting').forEach(e=>e.classList.remove('selecting'));
+    }
+    currentCells=[];
+  }
+
+  function showWin(){
+    const win=document.getElementById('ws-win');
+    win.style.display='flex';
+    win.scrollIntoView({behavior:'smooth', block:'center'});
+    launchConfetti();
+  }
+
+  function launchConfetti(){
+    const colors=['#f4a0b0','#f5c842','#c9a8e8','#ffffff','#e06080','#80d8ff'];
+    for(let i=0;i<120;i++){
+      setTimeout(()=>{
+        const el=document.createElement('div');
+        el.className='confetti-piece';
+        el.style.cssText=`
+          left:${Math.random()*100}vw; top:-10px;
+          background:${colors[Math.floor(Math.random()*colors.length)]};
+          width:${Math.random()*8+4}px; height:${Math.random()*8+4}px;
+          border-radius:${Math.random()>0.5?'50%':'2px'};
+          animation-duration:${Math.random()*2+2}s;
+          animation-delay:${Math.random()*0.5}s;
+        `;
+        document.body.appendChild(el);
+        setTimeout(()=>el.remove(),4000);
+      },i*20);
+    }
+  }
+
+  document.addEventListener('mouseup', endSel);
+  document.addEventListener('touchend', endSel);
+
+  makeGrid();
+  renderGrid();
+  renderWords();
+})();
 </script>
 
 </body>
