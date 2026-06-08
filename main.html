@@ -493,7 +493,7 @@
     <p class="gallery-subtitle">Every picture tells our story 💖</p>
   </div>
 
-  <div class="gallery-grid reveal" id="gallery-grid">
+ <div class="gallery-grid reveal" id="gallery-grid">
   <div class="gallery-slot" onclick="openLight(0)"><img class="gallery-img" id="gimg-0"/></div>
   <div class="gallery-slot" onclick="openLight(1)"><img class="gallery-img" id="gimg-1"/></div>
   <div class="gallery-slot" onclick="openLight(2)"><img class="gallery-img" id="gimg-2"/></div>
@@ -506,6 +506,76 @@
   <div class="gallery-slot" onclick="openLight(9)"><img class="gallery-img" id="gimg-9"/></div>
 </div>
 </section>
+
+<!-- ── LIGHTBOX ── -->
+<div id="lightbox" onclick="closeLight()" style="
+  display:none; position:fixed; inset:0; z-index:9998;
+  background: radial-gradient(ellipse at center, rgba(107,63,160,0.3) 0%, rgba(26,10,20,0.97) 70%);
+  backdrop-filter:blur(12px);
+  align-items:center; justify-content:center;
+">
+  <!-- Decorative glow behind image -->
+  <div style="
+    position:absolute;
+    width:600px; height:600px;
+    background: radial-gradient(circle, rgba(244,160,176,0.08) 0%, transparent 70%);
+    pointer-events:none;
+  "></div>
+
+  <!-- Left button -->
+  <button onclick="event.stopPropagation();moveLight(-1)" style="
+    position:absolute; left:1.5rem;
+    background: rgba(244,160,176,0.1);
+    border:1px solid rgba(244,160,176,0.4);
+    color:#f4a0b0; font-size:1.8rem;
+    width:52px; height:52px; border-radius:50%;
+    cursor:pointer; transition: all 0.2s;
+    display:flex; align-items:center; justify-content:center;
+  " onmouseover="this.style.background='rgba(244,160,176,0.25)';this.style.transform='scale(1.1)'"
+     onmouseout="this.style.background='rgba(244,160,176,0.1)';this.style.transform='scale(1)'">‹</button>
+
+  <!-- Image -->
+  <img id="lightbox-img" src="" style="
+    max-width:82vw; max-height:80vh;
+    border-radius:20px;
+    box-shadow:
+      0 0 0 1px rgba(244,160,176,0.15),
+      0 20px 60px rgba(0,0,0,0.6),
+      0 0 80px rgba(244,160,176,0.1);
+    transition:opacity 0.4s ease;
+    object-fit:contain;
+  "/>
+
+  <!-- Right button -->
+  <button onclick="event.stopPropagation();moveLight(1)" style="
+    position:absolute; right:1.5rem;
+    background: rgba(244,160,176,0.1);
+    border:1px solid rgba(244,160,176,0.4);
+    color:#f4a0b0; font-size:1.8rem;
+    width:52px; height:52px; border-radius:50%;
+    cursor:pointer; transition: all 0.2s;
+    display:flex; align-items:center; justify-content:center;
+  " onmouseover="this.style.background='rgba(244,160,176,0.25)';this.style.transform='scale(1.1)'"
+     onmouseout="this.style.background='rgba(244,160,176,0.1)';this.style.transform='scale(1)'">›</button>
+
+  <!-- Close button -->
+  <button onclick="closeLight()" style="
+    position:absolute; top:1.2rem; right:1.2rem;
+    background:rgba(244,160,176,0.1);
+    border:1px solid rgba(244,160,176,0.3);
+    color:#f4a0b0; font-size:1rem;
+    width:40px; height:40px; border-radius:50%;
+    cursor:pointer; transition: all 0.2s;
+  " onmouseover="this.style.background='rgba(244,160,176,0.25)'"
+     onmouseout="this.style.background='rgba(244,160,176,0.1)'">✕</button>
+
+  <!-- Counter -->
+  <div id="lightbox-counter" style="
+    position:absolute; bottom:1.5rem;
+    font-size:0.75rem; color:rgba(244,160,176,0.6);
+    letter-spacing:0.2em; font-family:'DM Sans',sans-serif;
+  "></div>
+</div>
 
 
 
@@ -553,8 +623,11 @@
       <div style="font-size:2.5rem;">🎉👻🎂</div>
       <div style="font-family:'Satisfy',cursive;font-size:2rem;color:#f5c842;">You Found Them All!</div>
       <p style="font-family:'Playfair Display',serif;font-style:italic;font-size:1rem;line-height:1.9;color:rgba(255,255,255,0.75);">
-        Just like every word in that grid,<br>
-        you are one of a kind Riya 💖<br><br>
+        RIYA · DANCER · DREAMER · SISTER · QUEEN<br>
+		    AESTHETIC · GHOST · PROUD<br><br>
+		    These aren't just words in a grid raa...<br>
+		    these are <em>you</em> 💝<br><br>
+		    Every single one of them.<br>
         Your anna is so proud of you.<br>
         Happy 18th Birthday raa chitti thali! 🥳
       </p>
@@ -1009,24 +1082,15 @@ const galleryImages = [
 
 let slotOrder = [0,1,2,3,4,5,6,7,8,9];
 
-// Set initial images
 slotOrder.forEach((imgIdx, slot) => {
   document.getElementById('gimg-' + slot).src = galleryImages[imgIdx];
 });
 
-// Update lightbox to use current slot order
-function openLight(slot) {
-  lightIndex = slot;
-  const lb = document.getElementById('lightbox');
-  lb.style.display = 'flex';
-  updateLight();
-}
-
 function shuffleArray(arr) {
   const a = [...arr];
   for(let i = a.length-1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i+1));
-    [a[i], a[j]] = [a[j], a[i]];
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]] = [a[j],a[i]];
   }
   return a;
 }
@@ -1048,6 +1112,43 @@ function waveSwap() {
 }
 
 setInterval(waveSwap, 6000);
+
+// ── LIGHTBOX ──
+let lightIndex = 0;
+
+function openLight(slot) {
+  lightIndex = slot;
+  document.getElementById('lightbox').style.display = 'flex';
+  updateLight();
+}
+
+function updateLight() {
+  const img = document.getElementById('lightbox-img');
+  img.style.opacity = '0';
+  setTimeout(() => {
+    img.src = galleryImages[slotOrder[lightIndex]];
+    img.style.opacity = '1';
+  }, 250);
+  document.getElementById('lightbox-counter').textContent =
+    (lightIndex + 1) + ' / ' + galleryImages.length;
+}
+
+function moveLight(dir) {
+  lightIndex = (lightIndex + dir + galleryImages.length) % galleryImages.length;
+  updateLight();
+}
+
+function closeLight() {
+  document.getElementById('lightbox').style.display = 'none';
+}
+
+document.addEventListener('keydown', e => {
+  if(document.getElementById('lightbox').style.display === 'flex') {
+    if(e.key === 'ArrowLeft') moveLight(-1);
+    if(e.key === 'ArrowRight') moveLight(1);
+    if(e.key === 'Escape') closeLight();
+  }
+});
 </script>
 
 </body>
