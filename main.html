@@ -493,38 +493,18 @@
     <p class="gallery-subtitle">Every picture tells our story 💖</p>
   </div>
 
-  <div class="gallery-grid reveal">
-    <div class="gallery-slot">
-      <img src="images/8.png" alt="Memory 1" class="gallery-img" />
-    </div>
-    <div class="gallery-slot">
-      <img src="images/6.jpeg" alt="Memory 2" class="gallery-img" />
-    </div>
-    <div class="gallery-slot">
-      <img src="images/4.jpeg" alt="Memory 3" class="gallery-img" />
-    </div>
-    <div class="gallery-slot">
-      <img src="images/9.png" alt="Memory 4" class="gallery-img" />
-    </div>
-    <div class="gallery-slot">
-      <img src="images/10.jpeg" alt="Memory 5" class="gallery-img" />
-    </div>
-    <div class="gallery-slot">
-      <img src="images/11.jpeg" alt="Memory 6" class="gallery-img" />
-    </div>
-    <div class="gallery-slot">
-      <img src="images/7.jpeg" alt="Memory 7" class="gallery-img" />
-    </div>
-    <div class="gallery-slot">
-      <img src="images/5.jpeg" alt="Memory 8" class="gallery-img" />
-    </div>
-    <div class="gallery-slot">
-      <img src="images/1.jpeg" alt="Memory 9" class="gallery-img" />
-    </div>
-    <div class="gallery-slot">
-      <img src="images/13.jpeg" alt="Memory 10" class="gallery-img" />
-    </div>
-  </div>
+  <div class="gallery-grid reveal" id="gallery-grid">
+  <div class="gallery-slot" onclick="openLight(0)"><img class="gallery-img" id="gimg-0"/></div>
+  <div class="gallery-slot" onclick="openLight(1)"><img class="gallery-img" id="gimg-1"/></div>
+  <div class="gallery-slot" onclick="openLight(2)"><img class="gallery-img" id="gimg-2"/></div>
+  <div class="gallery-slot" onclick="openLight(3)"><img class="gallery-img" id="gimg-3"/></div>
+  <div class="gallery-slot" onclick="openLight(4)"><img class="gallery-img" id="gimg-4"/></div>
+  <div class="gallery-slot" onclick="openLight(5)"><img class="gallery-img" id="gimg-5"/></div>
+  <div class="gallery-slot" onclick="openLight(6)"><img class="gallery-img" id="gimg-6"/></div>
+  <div class="gallery-slot" onclick="openLight(7)"><img class="gallery-img" id="gimg-7"/></div>
+  <div class="gallery-slot" onclick="openLight(8)"><img class="gallery-img" id="gimg-8"/></div>
+  <div class="gallery-slot" onclick="openLight(9)"><img class="gallery-img" id="gimg-9"/></div>
+</div>
 </section>
 
 
@@ -1012,6 +992,62 @@ hbd.play().catch(() => {});
   renderGrid();
   renderWords();
 })();
+
+// ── GALLERY SHUFFLE ──
+const galleryImages = [
+  "images/8.png",
+  "images/6.jpeg",
+  "images/4.jpeg",
+  "images/9.png",
+  "images/10.jpeg",
+  "images/11.jpeg",
+  "images/7.jpeg",
+  "images/5.jpeg",
+  "images/1.jpeg",
+  "images/13.jpeg"
+];
+
+let slotOrder = [0,1,2,3,4,5,6,7,8,9];
+
+// Set initial images
+slotOrder.forEach((imgIdx, slot) => {
+  document.getElementById('gimg-' + slot).src = galleryImages[imgIdx];
+});
+
+// Update lightbox to use current slot order
+function openLight(slot) {
+  lightIndex = slot;
+  const lb = document.getElementById('lightbox');
+  lb.style.display = 'flex';
+  updateLight();
+}
+
+function shuffleArray(arr) {
+  const a = [...arr];
+  for(let i = a.length-1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i+1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function waveSwap() {
+  const newOrder = shuffleArray(slotOrder);
+  for(let slot = 0; slot < 10; slot++) {
+    setTimeout(() => {
+      const img = document.getElementById('gimg-' + slot);
+      img.style.transition = 'opacity 1.2s ease';
+      img.style.opacity = '0';
+      setTimeout(() => {
+        img.src = galleryImages[newOrder[slot]];
+        img.style.opacity = '1';
+      }, 1200);
+    }, slot * 300);
+  }
+  slotOrder = newOrder;
+}
+
+setInterval(waveSwap, 6000);
 </script>
 
 </body>
